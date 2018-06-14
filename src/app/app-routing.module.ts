@@ -4,9 +4,8 @@ import { MyLibComponent } from 'my-lib';
 
 const routes: Routes = [
   {
-    path: '',
-    component: MyLibComponent,
-    pathMatch: 'full',
+    path: 'lazy',
+    loadChildren: 'my-lib#MyLibModule'
   },
 ];
 
