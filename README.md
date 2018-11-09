@@ -1,27 +1,19 @@
-# Ng6LibImport
+# Bug reproduction
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 6.0.8.
+This bug shows a missing factory when using lazy module loading in routes and ahead-of-time compilation.
 
-## Development server
+Just run `npm start` to reproduce the bug. This will first install all node modules, then build the library `my-lib` and then build the Angular application using ahead-of-time compilation.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+The error looks like this:
 
-## Code scaffolding
+```
+ERROR in ./src/$$_lazy_route_resource lazy namespace object
+Module not found: Error: Can't resolve '<your working directory>/angular-bugs/dist/my-lib/my-lib.ngfactory.js' in '<your working directory>\angular-bugs\src\$$_lazy_route_resource'
+```
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+A simple workaround is to uncomment the following line in the `app-routing.module.ts`. This import could be anywhere, it basically tells the compiler that it should import this module. This results in the ngfactory being created, even though the import is later removed by dead code search, because it is never used.
+But since the ngfactory was created, the webpack chunk compiler is able to bundle it as requested by the lazy route map.
 
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+```typescript
+import { MyLibModule } from 'my-lib';
+```
